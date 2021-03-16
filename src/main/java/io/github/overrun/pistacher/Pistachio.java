@@ -53,13 +53,14 @@ public final class Pistachio {
         System.err.println(line);
         System.err.println(msg);
     }
+
     public static void interpret(String file)
             throws IOException {
         try (Scanner sc = new Scanner(new File(file), StandardCharsets.UTF_8)) {
             int pos = 0;
             List<Statement> statements = new ArrayList<>();
-            Map<String, LabelExp> labels = new HashMap<>(16);
-            String labelName = null;
+            Map<String, Function> functions = new HashMap<>(16);
+            String funcName = null;
             while (sc.hasNextLine()) {
                 ++pos;
                 String line = sc.nextLine();
@@ -68,25 +69,19 @@ public final class Pistachio {
                     continue;
                 }
                 if (LABEL_PATTERN.matcher(line).matches()) {
-                    if (labelName != null) {
-                        labels.put(labelName,
-                                createLabel(labelName,
+                    if (funcName != null) {
+                        functions.put(funcName,
+                                createFunc(funcName,
                                         statements.toArray(new Statement[0])));
                         if (!statements.isEmpty()) {
                             statements.clear();
                         }
                     }
-                    labelName = line.substring(0, line.length() - 1);
+                    funcName = line.substring(0, line.length() - 1);
                 } else if (PRINTLN_PATTERN.matcher(line).matches()) {
-                    Statement statement;
-                    if (line.startsWith("    ")) {
-                        statement = createPrintln(
-                                line.substring(4).split("\\s", 2)
-                        );
-                    } else {
-                        statement = createPrintln(line.split("\\s", 2));
-                    }
-                    if (labelName != null) {
+                    Statement statement = createPrintln(line.replaceFirst("\\s*", "")
+                            .split("\\s", 2));
+                    if (funcName != null) {
                         statements.add(statement);
                     } else {
                         statement.run();
@@ -95,9 +90,9 @@ public final class Pistachio {
                     String[] arr = line.replaceFirst("\\s*", "")
                             .split("\\s+");
                     String lbNm = arr[arr.length - 1];
-                    LabelExp label = labels.get(lbNm);
-                    if (label != null) {
-                        label.invoke();
+                    Function function = functions.get(lbNm);
+                    if (function != null) {
+                        function.invoke();
                     } else {
                         printError(file, pos, line, "Label not found: " + lbNm);
                         return;

@@ -29,6 +29,8 @@ import java.util.function.Consumer;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 
 /**
+ * Quicker create expressions.
+ *
  * @author squid233
  * @since 2021/03/16
  */
@@ -48,9 +50,9 @@ public final class Expressions {
         System.out.println(unescapeJava(strings[1].substring(1, strings[1].length() - 1)));
     };
 
-    public static LabelExp createLabel(String name,
-                                       Statement... statements) {
-        return new LabelExp(name, statements);
+    public static Function createFunc(String name,
+                                      Statement... statements) {
+        return new Function(name, statements);
     }
 
     public static Statement createStatement(Consumer<Object[]> operation,
@@ -61,10 +63,5 @@ public final class Expressions {
     public static Statement createPrintln(String[] strings) {
         Consumer<Object[]> cons = objects -> PRINTLN.accept((String[]) objects[0]);
         return createStatement(cons, new Object[]{strings});
-    }
-
-    public static Statement createCallStatement(LabelExp label) {
-        Consumer<Object[]> cons = objects -> label.invoke();
-        return createStatement(cons, label);
     }
 }

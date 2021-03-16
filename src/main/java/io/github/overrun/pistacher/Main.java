@@ -24,34 +24,20 @@
 
 package io.github.overrun.pistacher;
 
+import java.io.IOException;
+
 /**
- * The expression contain a name and statements.<br>
- * Maps to {@code name:}
- *
  * @author squid233
  * @since 2021/03/16
  */
-public class LabelExp implements IExpression {
-    private final String name;
-    private final Statement[] statements;
-
-    public LabelExp(String name, Statement... statements) {
-        this.name = name;
-        this.statements = statements;
-    }
-
-    public LabelExp invoke() {
-        for (Statement statement : statements) {
-            statement.run();
+public final class Main {
+    public static void main(String[] args) throws IOException {
+        if (args.length > 0) {
+            for (String arg : args) {
+                Pistachio.interpret(arg);
+            }
+        } else {
+            System.out.println("Not specified files");
         }
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Statement[] getStatements() {
-        return statements;
     }
 }

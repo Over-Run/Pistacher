@@ -1,7 +1,10 @@
 - 0.3.0
     - Function
     - Remove `call`
+- 0.4.0
+    - Modules
 - Unknown
     - Block comment
-    - JIP (Java in Pistachio)
+    - OOP
+    - JIP (Java in Pistachio) // Warning: Don't try to interpret self!!!
         - `native`
