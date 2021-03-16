@@ -1,0 +1,6 @@
+// Print HelloWorld!
+println "HelloWorld"
+    // Support to indents!
+println stderr, "This is an example error"
+println "By OverRun Organization"
+println "By squid233"
