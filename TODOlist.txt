@@ -1,7 +1,7 @@
-- 0.2.0
-    - Label
-    - `goto`
-    - main
+- 0.3.0
+    - Function
+    - Remove `call`
 - Unknown
+    - Block comment
     - JIP (Java in Pistachio)
         - `native`

@@ -24,41 +24,100 @@
 
 package io.github.overrun.pistacher;
 
-import org.apache.commons.text.StringEscapeUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+
+import static io.github.overrun.pistacher.Expressions.*;
 
 /**
  * @author squid233
  * @since 2021/03/14
  */
 public final class Pistachio {
-    public static final Pattern PRINTLN_PATTERN = Pattern.compile("println\\s(std(out|err),\\s)?\".*\"");
+    public static final Pattern LABEL_PATTERN = Pattern.compile("^.+:");
+    public static final Pattern PRINTLN_PATTERN = Pattern.compile("\\s*println\\s(std(out|err),\\s)?\".*\"");
+    public static final Pattern CALL_PATTERN = Pattern.compile("\\s*call\\s+.+");
 
-    public static void interpret(String file) throws IOException {
+    private static void printError(String file,
+                                   int linePos,
+                                   String line,
+                                   String msg) {
+        System.err.println("Error in file [" + file + "] at line " + linePos);
+        System.err.println(line);
+        System.err.println(msg);
+    }
+    public static void interpret(String file)
+            throws IOException {
         try (Scanner sc = new Scanner(new File(file), StandardCharsets.UTF_8)) {
+            int pos = 0;
+            List<Statement> statements = new ArrayList<>();
+            Map<String, LabelExp> labels = new HashMap<>(16);
+            String labelName = null;
             while (sc.hasNextLine()) {
+                ++pos;
                 String line = sc.nextLine();
                 if (Pattern.matches("\\s*//.*", line)
-                        || !PRINTLN_PATTERN.matcher(line).matches()) {
+                        || Pattern.matches("\\s*", line)) {
                     continue;
                 }
-                String[] ex = line.split("\\s", 2);
-                if (ex[1].contains("std")) {
-                    String[] args = ex[1].split(",\\s");
-                    String content = StringEscapeUtils.unescapeJava(args[1].substring(1, args[1].length() - 1));
-                    if ("stdout".equals(args[0])) {
-                        System.out.println(content);
-                    } else if ("stderr".equals(args[0])) {
-                        System.err.println(content);
+                if (LABEL_PATTERN.matcher(line).matches()) {
+                    if (labelName != null) {
+                        labels.put(labelName,
+                                createLabel(labelName,
+                                        statements.toArray(new Statement[0])));
+                        if (!statements.isEmpty()) {
+                            statements.clear();
+                        }
+                    }
+                    labelName = line.substring(0, line.length() - 1);
+                } else if (PRINTLN_PATTERN.matcher(line).matches()) {
+                    Statement statement;
+                    if (line.startsWith("    ")) {
+                        statement = createPrintln(
+                                line.substring(4).split("\\s", 2)
+                        );
+                    } else {
+                        statement = createPrintln(line.split("\\s", 2));
+                    }
+                    if (labelName != null) {
+                        statements.add(statement);
+                    } else {
+                        statement.run();
+                    }
+                } else if (CALL_PATTERN.matcher(line).matches()) {
+                    String[] arr = line.replaceFirst("\\s*", "")
+                            .split("\\s+");
+                    String lbNm = arr[arr.length - 1];
+                    LabelExp label = labels.get(lbNm);
+                    if (label != null) {
+                        label.invoke();
+                    } else {
+                        printError(file, pos, line, "Label not found: " + lbNm);
+                        return;
                     }
                 } else {
-                    System.out.println(StringEscapeUtils.unescapeJava(ex[1].substring(1, ex[1].length() - 1)));
+                    printError(file, pos, line, "^ --> Not a statement");
+                    return;
                 }
+//                String[] ex = line.split("\\s", 2);
+//                if (ex[1].contains("std")) {
+//                    String[] args = ex[1].split(",\\s");
+//                    String content = StringEscapeUtils.unescapeJava(args[1].substring(1, args[1].length() - 1));
+//                    if ("stdout".equals(args[0])) {
+//                        System.out.println(content);
+//                    } else if ("stderr".equals(args[0])) {
+//                        System.err.println(content);
+//                    }
+//                } else {
+//                    System.out.println(StringEscapeUtils.unescapeJava(ex[1].substring(1, ex[1].length() - 1)));
+//                }
             }
         }
     }

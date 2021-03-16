@@ -1,6 +1,20 @@
-// Print HelloWorld!
-println "HelloWorld"
-    // Support to indents!
-println stderr, "This is an example error"
-println "By OverRun Organization"
-println "By squid233"
+printHelloWorld:
+    // This is a comment
+    println "HelloWorld"
+        // Support to indents!
+    println stderr, "This is an example error"
+
+printAuthors:
+    println "By OverRun Organization"
+    println "By squid233"
+
+doge:
+    println "Wow"
+    println "Cool"
+    println "Funny"
+
+// Note: You must put main at last
+main:
+    call printAuthors
+    call doge
+    call printHelloWorld
